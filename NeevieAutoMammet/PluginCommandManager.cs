@@ -1,78 +1,80 @@
-﻿using Dalamud.Game.Command;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Dalamud.Game.Command;
 using NeevieAutoMammet.Attributes;
 using static Dalamud.Game.Command.CommandInfo;
 
-namespace NeevieAutoMammet
+namespace NeevieAutoMammet;
+
+public class PluginCommandManager<THost> : IDisposable
 {
-    public class PluginCommandManager<THost> : IDisposable
-    {
-        private readonly CommandManager commandManager;
-        private readonly (string, CommandInfo)[] pluginCommands;
-        private readonly THost host;
+	private readonly CommandManager _commandManager;
+	private readonly THost _host;
+	private readonly (string, CommandInfo)[] _pluginCommands;
 
-        public PluginCommandManager(THost host, CommandManager commandManager)
-        {
-            this.commandManager = commandManager;
-            this.host = host;
+	public PluginCommandManager(THost host, CommandManager commandManager)
+	{
+		_commandManager = commandManager;
+		_host = host;
 
-            this.pluginCommands = host.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
-                .Where(method => method.GetCustomAttribute<CommandAttribute>() != null)
-                .SelectMany(GetCommandInfoTuple)
-                .ToArray();
+		_pluginCommands = _host.GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public |
+		                                             BindingFlags.Static | BindingFlags.Instance)
+			.Where(method => method.GetCustomAttribute<CommandAttribute>() != null)
+			.SelectMany(GetCommandInfoTuple)
+			.ToArray();
 
-            AddCommandHandlers();
-        }
-        
-        private void AddCommandHandlers()
-        {
-            foreach (var (command, commandInfo) in this.pluginCommands)
-            {
-                this.commandManager.AddHandler(command, commandInfo);
-            }
-        }
+		AddCommandHandlers();
+	}
 
-        private void RemoveCommandHandlers()
-        {
-            foreach (var (command, _) in this.pluginCommands)
-            {
-                this.commandManager.RemoveHandler(command);
-            }
-        }
+	public void Dispose()
+	{
+		RemoveCommandHandlers();
+		GC.SuppressFinalize(this);
+	}
 
-        private IEnumerable<(string, CommandInfo)> GetCommandInfoTuple(MethodInfo method)
-        {
-            var handlerDelegate = (HandlerDelegate)Delegate.CreateDelegate(typeof(HandlerDelegate), this.host, method);
+	private void AddCommandHandlers()
+	{
+		foreach ((string command, CommandInfo commandInfo) in _pluginCommands)
+		{
+			_commandManager.AddHandler(command, commandInfo);
+		}
+	}
 
-            var command = handlerDelegate.Method.GetCustomAttribute<CommandAttribute>();
-            var aliases = handlerDelegate.Method.GetCustomAttribute<AliasesAttribute>();
-            var helpMessage = handlerDelegate.Method.GetCustomAttribute<HelpMessageAttribute>();
+	private IEnumerable<(string, CommandInfo)> GetCommandInfoTuple(MethodInfo method)
+	{
+		HandlerDelegate handlerDelegate =
+			(HandlerDelegate)Delegate.CreateDelegate(typeof(HandlerDelegate), _host, method);
 
-            var commandInfo = new CommandInfo(handlerDelegate)
-            {
-                HelpMessage = helpMessage?.HelpMessage ?? string.Empty
-            };
+		CommandAttribute? command = handlerDelegate.Method.GetCustomAttribute<CommandAttribute>();
+		AliasesAttribute? aliases = handlerDelegate.Method.GetCustomAttribute<AliasesAttribute>();
+		HelpMessageAttribute? helpMessage = handlerDelegate.Method.GetCustomAttribute<HelpMessageAttribute>();
 
-            // Create list of tuples that will be filled with one tuple per alias, in addition to the base command tuple.
-            var commandInfoTuples = new List<(string, CommandInfo)> { (command!.Command, commandInfo) };
-            if (aliases != null)
-            {
-                foreach (var alias in aliases.Aliases)
-                {
-                    commandInfoTuples.Add((alias, commandInfo));
-                }
-            }
+		CommandInfo commandInfo = new CommandInfo(handlerDelegate)
+		{
+			HelpMessage = helpMessage?.HelpMessage ?? string.Empty
+		};
 
-            return commandInfoTuples;
-        }
+		// Create list of tuples that will be filled with one tuple per alias, in addition to the base command tuple.
+		List<(string, CommandInfo)> commandInfoTuples = new List<(string, CommandInfo)>
+			{ (command!.Command, commandInfo) };
+		if (aliases != null)
+		{
+			foreach (string alias in aliases.Aliases)
+			{
+				commandInfoTuples.Add((alias, commandInfo));
+			}
+		}
 
-        public void Dispose()
-        {
-            RemoveCommandHandlers();
-            GC.SuppressFinalize(this);
-        }
-    }
+		return commandInfoTuples;
+	}
+
+	private void RemoveCommandHandlers()
+	{
+		foreach ((string command, var _) in _pluginCommands)
+		{
+			_commandManager.RemoveHandler(command);
+		}
+	}
 }

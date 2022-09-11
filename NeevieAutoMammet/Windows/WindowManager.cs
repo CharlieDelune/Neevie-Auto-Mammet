@@ -1,58 +1,61 @@
 ﻿using System;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
+using NeevieAutoMammet.Constants;
 
 namespace NeevieAutoMammet.Windows;
 
 public class WindowManager : IDisposable
 {
-    private readonly MainWindow mainWindow;
-    private readonly ConfigWindow configWindow;
-    private readonly ErrorWindow errorWindow;
-    private readonly WindowSystem windowSystem = new(Constants.Global.PLUGIN_NAME);
-    private readonly DalamudPluginInterface pluginInterface;
-    private readonly Configuration configuration;
-    
-    public WindowManager(NeevieAutoMammet neevieAutoMammet, DalamudPluginInterface pluginInterface, Configuration configuration)
-    {
-        this.pluginInterface = pluginInterface;
-        this.configuration = configuration;
+	private readonly Configuration _configuration;
+	private readonly ConfigWindow _configWindow;
+	private readonly ErrorWindow _errorWindow;
+	private readonly MainWindow _mainWindow;
+	private readonly DalamudPluginInterface _pluginInterface;
+	private readonly WindowSystem _windowSystem = new(Global.PLUGIN_NAME);
 
-        mainWindow = new MainWindow(this.configuration, this);
-        configWindow = new ConfigWindow(this.configuration, this);
-        errorWindow = new ErrorWindow();
-        
-        windowSystem.AddWindow(mainWindow);
-        windowSystem.AddWindow(configWindow);
-        windowSystem.AddWindow(errorWindow);
-        
-        this.pluginInterface.UiBuilder.Draw += DrawUI;
-    }
+	public WindowManager(NeevieAutoMammet neevieAutoMammet, DalamudPluginInterface pluginInterface,
+		Configuration configuration)
+	{
+		_pluginInterface = pluginInterface;
+		_configuration = configuration;
 
-    public void DrawErrorWindow(string error)
-    {
-        errorWindow.SetErrorMessage(error);
-        errorWindow.IsOpen = true;
-    }
-    
-    public void DrawConfigWindow()
-    {
-        configWindow.IsOpen = true;
-    }
+		_mainWindow = new MainWindow(_configuration, this);
+		_configWindow = new ConfigWindow(_configuration, this);
+		_errorWindow = new ErrorWindow();
 
-    public void DrawMainWindow()
-    {
-        mainWindow.GenerateEmote();
-        mainWindow.IsOpen = true;
-    }
+		_windowSystem.AddWindow(_mainWindow);
+		_windowSystem.AddWindow(_configWindow);
+		_windowSystem.AddWindow(_errorWindow);
 
-    public void Dispose()
-    {
-        windowSystem.RemoveAllWindows();
-    }
-    
-    private void DrawUI()
-    {
-        windowSystem.Draw();
-    }
+		_pluginInterface.UiBuilder.Draw += DrawUI;
+	}
+
+	public void Dispose()
+	{
+		_windowSystem.RemoveAllWindows();
+	}
+
+	public void DrawConfigWindow()
+	{
+		_configWindow.IsOpen = true;
+	}
+
+	public void DrawErrorWindow(string error)
+	{
+		_errorWindow.SetErrorMessage(error);
+		_errorWindow.IsOpen = true;
+	}
+
+	public void DrawMainWindow()
+	{
+		_mainWindow.ResetChatType();
+		_mainWindow.GenerateEmote();
+		_mainWindow.IsOpen = true;
+	}
+
+	private void DrawUI()
+	{
+		_windowSystem.Draw();
+	}
 }

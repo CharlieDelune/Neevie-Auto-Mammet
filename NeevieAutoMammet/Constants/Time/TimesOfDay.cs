@@ -2,6 +2,6 @@
 
 public enum TimesOfDay
 {
-    AM,
-    PM
+	AM,
+	PM
 }
