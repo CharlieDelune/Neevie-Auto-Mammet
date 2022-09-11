@@ -4,6 +4,7 @@
   "Punchline": "Now you too can be annoyed to death by a mammet that spews quotes at you.",
   "Description": "Neevie Auto-Mammet Emote Generator accepts a series of quotes provided by you, the user. A random quote is selected and inserted into the emote, and the emote is split into chunks if the string is too long to fit in a single emote.",
   "InternalName": "NeevieAutoMammet",
+  "AssemblyVersion": "0.1.2",
   "RepoUrl": "https://github.com/CharlieDelune/Neevie-Auto-Mammet",
   "ApplicableVersion": "any",
   "Tags": [
