@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <Authors></Authors>
-        <Company></Company>
-        <Version>0.0.0.1</Version>
-        <Description>A sample plugin.</Description>
-        <Copyright></Copyright>
-        <PackageProjectUrl>https://github.com/charliedelune/NeevieAutoMammet</PackageProjectUrl>
+        <Authors>GlassLionCharlie</Authors>
+        <Version>0.1.0.0</Version>
+        <Description>Neevie Auto-Mammet Emote Generator accepts a series of quotes provided by you, the user. A random quote is selected and inserted into the emote, and the emote is split into chunks if the string is too long to fit in a single emote.</Description>
+        <PackageProjectUrl>https://github.com/CharlieDelune/Neevie-Auto-Mammet</PackageProjectUrl>
+        <Configurations>Debug;Release</Configurations>
     </PropertyGroup>
 
     <PropertyGroup>
         <TargetFramework>net6.0-windows</TargetFramework>
-        <Platforms>x64</Platforms>
+        <Platforms>x64;AnyCPU</Platforms>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <OutputPath>..\builds\$(Configuration)\</OutputPath>
     </PropertyGroup>
 
     <PropertyGroup>
         <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <RepositoryUrl>https://github.com/CharlieDelune/Neevie-Auto-Mammet</RepositoryUrl>
+        <PackageReleaseNotes></PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))'">
@@ -29,7 +32,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.8"/>
+        <Content Include="NeevieAutoMammet.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DalamudPackager" Version="2.1.8" />
         <Reference Include="FFXIVClientStructs">
             <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
             <Private>false</Private>
@@ -59,5 +68,8 @@
             <Private>false</Private>
         </Reference>
     </ItemGroup>
-
+    
+    <Target Name="PackagePlugin" AfterTargets="Build">
+        <DalamudPackager ProjectDir="$(ProjectDir)" OutputPath="$(OutputPath)" AssemblyName="$(AssemblyName)" />
+    </Target>
 </Project>

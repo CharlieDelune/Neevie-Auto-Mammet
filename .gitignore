@@ -2,4 +2,6 @@
 obj/
 bin/
 *.user
-.idea/*
+.idea
+builds
+.git
