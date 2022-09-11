@@ -79,5 +79,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v1
         with:
           token: ${{ secrets.PAT }}
-          repository: LeonBlade/DalamudPlugins
+          repository: CharlieDelune/DalamudPlugins
           event-type: new-release
